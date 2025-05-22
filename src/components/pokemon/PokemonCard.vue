@@ -75,6 +75,11 @@ import { useRouter } from 'vue-router';
 import { getFromUrl } from '@/services/pokemonService.js';
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
+/**
+ * Props del componente
+ * @typedef {Object} Props
+ * @property {Object} pokemon - Datos básicos del Pokémon (name, url)
+ */
 const props = defineProps({
   pokemon: { type: Object, required: true },
 });
@@ -85,7 +90,10 @@ const isLoadingDetails = ref(false);
 const errorDetails = ref(null);
 const localPokemon = ref(props.pokemon);
 
-const fetchDetails = async () => { /* ... se mantiene igual ... */ 
+/**
+ * Obtiene los detalles del Pokémon desde la API
+ */
+const fetchDetails = async () => {
   if (!localPokemon.value?.url && !localPokemon.value?.name) {
     errorDetails.value = 'Datos insuficientes para cargar detalles del Pokémon.';
     return;
@@ -103,51 +111,68 @@ const fetchDetails = async () => { /* ... se mantiene igual ... */
   }
 };
 
-// Colores de tipos mejorados para tema light
+/**
+ * Mapa de clases CSS para los diferentes tipos de Pokémon
+ * Incluye colores de texto adaptados para tipos claros
+ */
 const typeColors = {
   normal: 'bg-gray-400',
   fire: 'bg-orange-500',
   water: 'bg-blue-500',
-  electric: 'bg-yellow-500 text-gray-800', // Ya tiene color de texto oscuro
+  electric: 'bg-yellow-500 text-gray-800',
   grass: 'bg-emerald-500',
-  ice: 'bg-cyan-400 text-gray-800', // Ya tiene color de texto oscuro
+  ice: 'bg-cyan-400 text-gray-800',
   fighting: 'bg-red-600',
   poison: 'bg-purple-500',
   ground: 'bg-amber-600',
   flying: 'bg-indigo-400',
   psychic: 'bg-pink-500',
-  bug: 'bg-lime-500 text-gray-800', // Añadido texto oscuro
+  bug: 'bg-lime-500 text-gray-800',
   rock: 'bg-stone-500',
   ghost: 'bg-violet-600',
   dragon: 'bg-indigo-600',
   dark: 'bg-gray-700',
-  steel: 'bg-slate-400 text-gray-800', // Añadido texto oscuro
-  fairy: 'bg-rose-400 text-gray-800', // Añadido texto oscuro
+  steel: 'bg-slate-400 text-gray-800',
+  fairy: 'bg-rose-400 text-gray-800',
 };
 
+/**
+ * Obtiene la clase CSS correspondiente al tipo de Pokémon
+ * @param {string} typeName - Nombre del tipo de Pokémon
+ * @returns {string} Clase CSS para el color de fondo y texto
+ */
 const getTypeColor = (typeName) => typeColors[typeName.toLowerCase()] || 'bg-gray-300';
 
-const navigateToDetail = () => { /* ... se mantiene igual ... */
+/**
+ * Navega a la vista de detalle del Pokémon actual
+ */
+const navigateToDetail = () => {
   if (pokemonDetails.value || localPokemon.value.name) {
     router.push({ name: 'pokemon-detail', params: { name: localPokemon.value.name } });
   }
 };
 
-const onImageError = (event) => { /* ... se mantiene igual ... */
+/**
+ * Maneja errores de carga de imagen
+ * @param {Event} event - Evento de error de la imagen
+ */
+const onImageError = (event) => {
   console.warn(`No se pudo cargar la imagen: ${event.target.src}`);
 };
 
-watch(() => props.pokemon, (newPokemon) => { /* ... se mantiene igual ... */
+// Observar cambios en la prop 'pokemon' y recargar si cambia
+watch(() => props.pokemon, (newPokemon) => {
   localPokemon.value = newPokemon;
   pokemonDetails.value = null;
   fetchDetails();
 }, { deep: true });
 
-onMounted(() => { /* ... se mantiene igual ... */
+// Cargar detalles cuando el componente se monta
+onMounted(() => {
   fetchDetails();
 });
 </script>
 
 <style scoped>
-/* Puedes añadir más estilos aquí, por ejemplo, una altura mínima para la tarjeta si es necesario */
+/* Aquí puedes definir estilos específicos como altura mínima para la tarjeta */
 </style>

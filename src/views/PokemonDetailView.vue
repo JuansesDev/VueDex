@@ -111,7 +111,7 @@
 
         <!-- Columna de Información -->
         <div>
-          <!-- Descripción (esto requeriría otra llamada a species endpoint) -->
+          <!-- La descripción requeriría otra llamada a species endpoint -->
           <!-- <p class="text-gray-700 mb-6 text-lg leading-relaxed">{{ speciesDescription }}</p> -->
 
           <h2 class="text-2xl font-semibold text-gray-800 mb-3">Estadísticas Base</h2>
@@ -140,12 +140,12 @@
             </div>
           </div>
           
-          <!-- Podríamos añadir evoluciones, debilidades, etc. aquí con más llamadas API -->
+          <!-- Evoluciones y debilidades requerirían más llamadas API -->
         </div>
       </div>
     </div>
 
-    <!-- Placeholder si no hay Pokémon cargado (ej. al entrar a la ruta directamente sin params) -->
+    <!-- Placeholder si no hay Pokémon cargado -->
     <div v-else-if="!pokemonNameFromRoute" class="text-center my-10 text-gray-500">
       <p>No se ha especificado un Pokémon.</p>
     </div>
@@ -165,8 +165,9 @@ const pokemonStore = usePokemonStore();
 
 const pokemonNameFromRoute = ref(route.params.name);
 
-// Colores para el gradiente del header de la tarjeta de detalle
-// Puedes personalizarlos mucho más
+/**
+ * Mapa de gradientes para el fondo de cabecera según el tipo de Pokémon
+ */
 const typeGradients = {
   normal: 'from-gray-400 to-gray-500',
   fire: 'from-red-600 to-orange-600',
@@ -188,6 +189,9 @@ const typeGradients = {
   fairy: 'from-rose-400 to-pink-500',
 };
 
+/**
+ * Mapa de colores de fondo para las insignias de tipo
+ */
 const typeBackgroundColors = {
   normal: 'bg-gray-400',
   fire: 'bg-red-600',
@@ -209,23 +213,38 @@ const typeBackgroundColors = {
   fairy: 'bg-rose-400',
 };
 
-// Obtener el color de fondo apropiado para las insignias de tipo
+/**
+ * Obtiene el color de fondo para las insignias de tipo
+ * @param {string} typeName - Nombre del tipo de Pokémon
+ * @returns {string} Clase CSS para el color de fondo
+ */
 const getTypeBackgroundColor = (typeName) => {
   return typeName ? (typeBackgroundColors[typeName.toLowerCase()] || 'bg-gray-500') : 'bg-gray-500';
 };
 
-// Añadimos colores de texto para tipos claros
+/**
+ * Determina el color de texto adecuado para cada tipo
+ * @param {string} typeName - Nombre del tipo de Pokémon
+ * @returns {string} Clase CSS para el color de texto
+ */
 const getTypeTextColor = (typeName) => {
   // Tipos claros que necesitan texto oscuro
   const darkTextTypes = ['electric', 'ice', 'fairy'];
   return darkTextTypes.includes(typeName?.toLowerCase()) ? 'text-gray-800' : 'text-white';
 };
 
+/**
+ * Obtiene el gradiente de color según el tipo de Pokémon
+ * @param {string} typeName - Nombre del tipo de Pokémon
+ * @returns {string} Clase CSS para el gradiente
+ */
 const getTypeGradient = (typeName) => {
   return typeName ? (typeGradients[typeName.toLowerCase()] || 'from-gray-400 to-gray-600') : 'from-gray-400 to-gray-600';
 };
 
-// Colores para las barras de estadísticas con mejor contraste
+/**
+ * Mapa de colores para las barras de estadísticas
+ */
 const statBarColors = {
   'hp': 'bg-red-500 text-white',
   'attack': 'bg-orange-600 text-white',
@@ -235,35 +254,48 @@ const statBarColors = {
   'speed': 'bg-purple-600 text-white'
 };
 
+/**
+ * Obtiene el color para cada barra de estadística
+ * @param {string} statName - Nombre de la estadística
+ * @returns {string} Clase CSS para el color de la barra
+ */
 const getStatBarColor = (statName) => {
   return statBarColors[statName] || 'bg-blue-600 text-white';
 };
 
+/**
+ * Formatea el nombre de la estadística para mejor visualización
+ * @param {string} statName - Nombre de la estadística
+ * @returns {string} Nombre formateado
+ */
 const formatStatName = (statName) => {
   return statName.replace(/-/g, ' ');
 };
 
+/**
+ * Carga los detalles del Pokémon desde la API
+ */
 const loadDetails = async () => {
   if (pokemonNameFromRoute.value) {
     await pokemonStore.fetchPokemonDetails(pokemonNameFromRoute.value);
   }
 };
 
+// Cargar detalles cuando el componente se monta
 onMounted(() => {
   loadDetails();
 });
 
-// Limpiar los detalles del Pokémon cuando el componente se desmonte
-// para evitar mostrar datos incorrectos brevemente si se navega a otro detalle.
+// Limpiar los detalles del Pokémon al desmontar el componente
 onUnmounted(() => {
   pokemonStore.clearPokemonDetails();
 });
 
-// Observar cambios en el parámetro de la ruta (si el usuario navega de un detalle a otro directamente)
+// Observar cambios en el parámetro de la ruta
 watch(() => route.params.name, (newName) => {
   if (newName) {
     pokemonNameFromRoute.value = newName;
-    loadDetails(); // Recargar para el nuevo Pokémon
+    loadDetails();
   }
 });
 
@@ -273,7 +305,11 @@ const selectedSprite = computed(() => {
   return getSprite(selectedSpriteType.value);
 });
 
-// Función para obtener los diferentes sprites
+/**
+ * Obtiene la URL del sprite según el tipo seleccionado
+ * @param {string} type - Tipo de sprite (default, shiny, female, etc.)
+ * @returns {string|null} URL del sprite o null si no está disponible
+ */
 const getSprite = (type) => {
   const sprites = pokemonStore.currentPokemonDetails?.sprites;
   if (!sprites) return null;
@@ -293,7 +329,10 @@ const getSprite = (type) => {
   }
 };
 
-// Función para seleccionar un sprite
+/**
+ * Actualiza el sprite seleccionado
+ * @param {string} type - Tipo de sprite a seleccionar
+ */
 const selectSprite = (type) => {
   selectedSpriteType.value = type;
 };
@@ -302,12 +341,8 @@ const selectSprite = (type) => {
 
 <style scoped>
 .pokemon-detail-view {
-  max-width: 1024px; /* Ajusta según preferencia */
+  max-width: 1024px;
 }
-/* Estilo para las barras de stats, un poco más dinámico si quieres colores por stat */
-/* .stat-bar-hp { background-color: #FF5959; } */
-/* .stat-bar-attack { background-color: #F5AC78; } */
-/* ... etc ... */
 
 .sprite-button {
   transition: all 0.2s;

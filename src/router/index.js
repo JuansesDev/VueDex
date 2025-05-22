@@ -1,9 +1,10 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-// Asegúrate que la importación de PokemonDetailView sea correcta
-// Si lo creaste como PokemonDetailView.vue, la importación debe ser así:
+// Importa la nueva vista
+import AboutView from '../views/AboutView.vue' 
 import PokemonDetailView from '../views/PokemonDetailView.vue'
+
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -14,15 +15,18 @@ const router = createRouter({
       component: HomeView
     },
     {
-      // Usaremos el nombre del Pokémon como parámetro en la ruta
-      // La PokéAPI permite buscar por nombre o ID
       path: '/pokemon/:name',
       name: 'pokemon-detail',
-      component: PokemonDetailView,
-      props: true // Esto permite pasar los params de la ruta como props al componente si se desea
+      component: PokemonDetailView, // Asumiendo que este es el nombre de tu componente de vista de detalle
+      props: true 
+    },
+    // Nueva ruta para "Acerca de"
+    {
+      path: '/about',
+      name: 'about',
+      component: AboutView 
     }
-    // Puedes añadir una ruta para "Not Found" (404) más adelante si quieres
-    // { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFoundView.vue') }
+    // { path: '/:pathMatch(.*)*', name: 'NotFound', component: () => import('../views/NotFoundView.vue') } // Opcional: Ruta 404
   ]
 })
 

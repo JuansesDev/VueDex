@@ -54,7 +54,7 @@
       </div>
     </div>
     
-    <!-- Placeholder inicial (raro que se vea mucho si fetch se llama en onMounted) -->
+    <!-- Placeholder inicial -->
     <div v-else class="flex flex-col items-center justify-center flex-grow p-4 text-gray-400">
        <p class="text-sm">Preparando tarjeta...</p>
     </div>
@@ -64,27 +64,33 @@
 <script setup>
 import { ref, onMounted, watch, toRefs } from 'vue';
 import { useRouter } from 'vue-router';
-// Asegúrate que la ruta al servicio es correcta
 import { getFromUrl, getPokemonDetails } from '@/services/pokemonService.js'; 
 import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
 
 const props = defineProps({
-  pokemon: { // Este prop tendrá { name: string, url: string } de la lista
+  /**
+   * Datos básicos del Pokémon: {name, url}
+   * @type {Object}
+   * @required
+   */
+  pokemon: {
     type: Object,
     required: true
   }
 });
 
-// Para poder usar props.pokemon de forma reactiva en el script y en watch
+// Usar toRefs para mantener la reactividad cuando se accede a props.pokemon
 const { pokemon: localPokemon } = toRefs(props);
 
 const router = useRouter();
 
-const cardDetails = ref(null); // Almacenará los detalles completos (id, sprites, types)
+const cardDetails = ref(null); // Almacena detalles completos (id, sprites, types)
 const isLoadingDetails = ref(false);
 const errorDetails = ref(null);
 
-// Función para obtener colores de tipos (como la tenías o la mejorada que te di)
+/**
+ * Mapa de clases CSS para cada tipo de Pokémon
+ */
 const typeColors = {
   normal: 'bg-gray-400 hover:bg-gray-500',
   fire: 'bg-red-500 hover:bg-red-600',
@@ -106,10 +112,18 @@ const typeColors = {
   fairy: 'bg-rose-400 hover:bg-rose-500',
 };
 
+/**
+ * Obtiene la clase CSS correspondiente al tipo de Pokémon
+ * @param {string} typeName - Nombre del tipo de Pokémon
+ * @returns {string} Clase CSS para el color de fondo
+ */
 const getTypeColor = (typeName) => {
   return typeColors[typeName.toLowerCase()] || 'bg-gray-300 hover:bg-gray-400';
 };
 
+/**
+ * Obtiene los detalles del Pokémon desde la API
+ */
 const fetchCardDetails = async () => {
   if (!localPokemon.value?.url && !localPokemon.value?.name) {
     errorDetails.value = 'Prop de Pokémon inválida o URL faltante.';
@@ -119,12 +133,9 @@ const fetchCardDetails = async () => {
   isLoadingDetails.value = true;
   errorDetails.value = null;
   try {
-    // Usamos la URL que viene en la prop 'pokemon' de la lista
-    // Esta URL ya es el endpoint de detalles del Pokémon.
+    // Usar la URL que viene en la prop 'pokemon' de la lista
     const data = await getFromUrl(localPokemon.value.url);
-    // O, si prefieres usar el nombre (getFromUrl es más directo si ya tienes la URL de detalle):
-    // const data = await getPokemonDetails(localPokemon.value.name);
-    cardDetails.value = data; // Aquí data tendrá { id, name, sprites, types, ... }
+    cardDetails.value = data;
   } catch (error) {
     console.error(`Error cargando detalles para ${localPokemon.value.name} en PokemonCard:`, error);
     errorDetails.value = error.message || `No se pudo cargar ${localPokemon.value.name}.`;
@@ -133,28 +144,33 @@ const fetchCardDetails = async () => {
   }
 };
 
+/**
+ * Navega a la vista de detalle del Pokémon actual
+ */
 const navigateToDetail = () => {
-  // Navegamos usando el nombre del Pokémon que ya tenemos en localPokemon.value.name
   router.push({ name: 'pokemon-detail', params: { name: localPokemon.value.name } });
 };
 
+/**
+ * Maneja errores de carga de imagen
+ * @param {Event} event - Evento de error de la imagen
+ */
 const onImageError = (event) => {
   console.warn(`No se pudo cargar la imagen para ${localPokemon.value.name}: ${event.target.src}`);
-  // Opcional: puedes establecer una imagen de fallback aquí directamente en el target
+  // Se podría establecer una imagen predeterminada:
   // event.target.src = '/path/to/default-placeholder.png';
 };
 
-// Cuando el componente se monta, busca los detalles.
+// Cargar detalles cuando el componente se monta
 onMounted(() => {
   fetchCardDetails();
 });
 
-// Si la prop 'pokemon' cambia (por ejemplo, si la lista se filtra o reordena de forma reactiva
-// y Vue reutiliza el componente de la tarjeta), necesitamos volver a cargar los detalles.
+// Observar cambios en la prop 'pokemon' y recargar si cambia
 watch(localPokemon, (newVal, oldVal) => {
   if (newVal && oldVal && newVal.url !== oldVal.url) {
     fetchCardDetails();
   }
-}, { deep: true }); // deep true es por si el objeto pokemon se muta, aunque la URL es lo clave aquí.
+}, { deep: true });
 
 </script>

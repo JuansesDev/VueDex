@@ -1,64 +1,86 @@
 // src/stores/pokemon.js
 import { defineStore } from 'pinia';
-import { getPokemonList } from '@/services/pokemonService'; // Ajusta la ruta si es necesario
+// Asegúrate que la ruta al servicio es correcta. Si tu carpeta de servicios está en src/services:
+import { getPokemonList } from '@/services/pokemonService';
 
-// Definimos nuestro store, 'pokemon' será el ID único del store.
 export const usePokemonStore = defineStore('pokemon', {
-  // State: define las propiedades reactivas del store.
   state: () => ({
-    pokemonList: [],      // Array para almacenar la lista de Pokémon
-    isLoadingList: false, // Para indicar si la lista se está cargando
-    errorList: null,      // Para almacenar mensajes de error al cargar la lista
-    // Más adelante podríamos añadir:
-    // currentPokemonDetails: null,
-    // isLoadingDetails: false,
-    // errorDetails: null,
-    // pagination: { offset: 0, limit: 20, count: 0 }
+    pokemonList: [],
+    isLoadingList: false,
+    errorList: null,
+    // Podríamos añadir un contador total de Pokémon si la API lo proporciona fácilmente
+    // para mejorar la lógica de "cargar más".
+    // totalPokemonCountFromApi: 0,
   }),
 
-  // Getters: son como propiedades computadas para los stores.
-  // Por ahora no necesitamos getters complejos, pero un ejemplo sería:
   getters: {
-    // totalPokemon: (state) => state.pokemonList.length,
-    // getPokemonByName: (state) => (name) => {
-    //   return state.pokemonList.find(p => p.name === name);
-    // }
+    // Ejemplo de getter (no usado activamente por ahora)
+    // hasPokemon: (state) => state.pokemonList.length > 0,
   },
 
-  // Actions: métodos que pueden contener lógica asíncrona y mutar el estado.
   actions: {
     async fetchPokemonList(offset = 0, limit = 20) {
-      if (this.pokemonList.length > 0 && offset === 0) { // Evitar recargar si ya tenemos la primera página y no se pide otra
-         // Opcional: podríamos tener una lógica más sofisticada para caché o paginación aquí.
-         // Por ahora, si se llama sin offset, asumimos que se quiere la primera página.
-         // Si ya hay datos y el offset es 0, podríamos decidir no hacer nada o limpiar y recargar.
-         // Para esta prueba, la recargaremos.
-         // this.pokemonList = []; // Descomentar si queremos limpiar antes de cada fetch de offset 0
+      // Si es la primera carga (offset 0) y ya tenemos datos, podríamos decidir si recargar o no.
+      // Por simplicidad en este punto, siempre recargaremos si se pide offset 0,
+      // o limpiaremos la lista si offset es 0 para asegurar que no se dupliquen al recargar la "primera página".
+      if (offset === 0) {
+        this.pokemonList = []; // Limpiar para la primera carga/recarga de la primera página
       }
 
       this.isLoadingList = true;
       this.errorList = null;
+
       try {
-        const list = await getPokemonList(offset, limit);
-        // La API devuelve objetos con { name, url }. Podríamos querer procesarlos aquí
-        // o directamente en el componente. Por ahora, los guardamos tal cual.
-        if (offset === 0) {
-          this.pokemonList = list;
-        } else {
-          // Si es paginación, añadimos a la lista existente
-          this.pokemonList = [...this.pokemonList, ...list];
+        const listFromApi = await getPokemonList(offset, limit);
+
+        // --- SOLO PARA PRUEBA DE LOADER (DESCOMENTAR SI QUIERES VER EL SPINNER) ---
+        // console.log('Simulando retardo para ver el loader...');
+        // await new Promise(resolve => setTimeout(resolve, 1500)); // Espera 1.5 segundos
+        // --- FIN DE PRUEBA DE LOADER ---
+
+        if (listFromApi && listFromApi.length > 0) {
+          // Si es la primera carga (offset 0) o la lista estaba vacía, asignamos directamente.
+          // Si no, concatenamos para la paginación.
+          this.pokemonList = offset === 0 ? listFromApi : [...this.pokemonList, ...listFromApi];
+        } else if (offset > 0 && (!listFromApi || listFromApi.length === 0)) {
+          // Si estamos intentando cargar más (offset > 0) pero la API no devuelve nada,
+          // podríamos indicar que no hay más Pokémon para cargar.
+          // Por ahora, simplemente no se añadirán más.
+          console.log('No se encontraron más Pokémon para cargar.');
         }
-        // Aquí podríamos actualizar también datos de paginación (count, next, etc.)
+        // Idealmente, la API nos daría el 'count' total para gestionar mejor la paginación
+        // y saber cuándo deshabilitar el botón "cargar más".
+        // this.totalPokemonCountFromApi = data.count; // Si la API devolviera un objeto con count
+
       } catch (error) {
-        // El error ya fue logueado por el servicio, aquí lo guardamos para la UI.
-        this.errorList = error.message || 'Error desconocido al cargar la lista de Pokémon.';
-        this.pokemonList = []; // Limpiar la lista en caso de error
+        console.error('Error en la acción fetchPokemonList:', error); // Loguear el error aquí también es útil
+        this.errorList = error.message || 'Error desconocido al obtener la lista de Pokémon.';
+        // Es importante decidir si limpiar la lista en caso de error
+        // Si es un error de paginación, quizás no queremos limpiar los ya cargados.
+        // Si es un error de carga inicial, sí.
+        if (offset === 0) {
+          this.pokemonList = [];
+        }
       } finally {
         this.isLoadingList = false;
       }
     },
 
-    // Más adelante:
-    // async fetchPokemonDetails(nameOrId) { ... }
+    // Acción para el detalle del Pokémon (la implementaremos más adelante)
+    /*
+    async fetchPokemonDetails(nameOrId) {
+      this.isLoadingDetails = true;
+      this.errorDetails = null;
+      this.currentPokemonDetails = null;
+      try {
+        // const details = await getPokemonDetails(nameOrId); // Desde tu servicio
+        // this.currentPokemonDetails = details;
+      } catch (error) {
+        // this.errorDetails = error.message || `Error al obtener detalles de ${nameOrId}.`;
+      } finally {
+        // this.isLoadingDetails = false;
+      }
+    }
+    */
   },
 });

@@ -36,6 +36,8 @@
   --section-gap: 160px;
 }
 
+/* Disabling dark mode media query for consistent light theme */
+/*
 @media (prefers-color-scheme: dark) {
   :root {
     --color-background: var(--vt-c-black);
@@ -49,14 +51,9 @@
     --color-text: var(--vt-c-text-dark-2);
   }
 }
+*/
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  font-weight: normal;
-}
+/* Eliminamos los resets globales que se moverán a main.css dentro de @layer base */
 
 body {
   min-height: 100vh;
@@ -88,6 +85,12 @@ body {
   overflow-x: hidden; /* Prevenir scroll horizontal */
 }
 
+/* Asegurar que el contenedor principal tenga suficiente espacio */
+main, .container {
+  width: 100%;
+  max-width: 1600px; /* Un máximo razonable para pantallas muy anchas */
+  margin: 0 auto;
+}
 /* Asegurar que el contenedor principal tenga suficiente espacio */
 main, .container {
   width: 100%;

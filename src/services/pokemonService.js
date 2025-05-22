@@ -81,3 +81,113 @@ export async function getFromUrl(url) {
     throw error;
   }
 }
+
+/**
+ * Obtiene todos los tipos de Pokémon disponibles.
+ * @returns {Promise<Array<{name: string, url: string}>>} Una promesa que resuelve a una lista de tipos.
+ */
+export async function getPokemonTypes() {
+  try {
+    const response = await fetch(`${API_BASE_URL}type`);
+    
+    if (!response.ok) {
+      throw new Error(`Error al obtener tipos de Pokémon: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.results; // Devuelve la lista de tipos
+  } catch (error) {
+    console.error('Error en getPokemonTypes:', error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene todas las generaciones de Pokémon disponibles.
+ * @returns {Promise<Array<{name: string, url: string}>>} Una promesa que resuelve a una lista de generaciones.
+ */
+export async function getPokemonGenerations() {
+  try {
+    const response = await fetch(`${API_BASE_URL}generation`);
+    
+    if (!response.ok) {
+      throw new Error(`Error al obtener generaciones de Pokémon: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.results; // Devuelve la lista de generaciones
+  } catch (error) {
+    console.error('Error en getPokemonGenerations:', error);
+    throw error;
+  }
+}
+
+/**
+ * Busca Pokémon que coincidan con un nombre específico.
+ * @param {string} name - El nombre o parte del nombre a buscar.
+ * @returns {Promise<Array<{name: string, url: string}>>} Una promesa que resuelve a una lista de Pokémon que coinciden.
+ */
+export async function searchPokemonByName(name) {
+  try {
+    // La API no soporta búsqueda por nombre parcial, así que obtendremos algunos
+    // y filtraremos en el cliente
+    const response = await fetch(`${API_BASE_URL}pokemon?limit=2000`); // Un límite alto para obtener la mayoría
+    
+    if (!response.ok) {
+      throw new Error(`Error al buscar Pokémon: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    // Filtrado en el cliente por nombre
+    const filteredResults = data.results.filter(pokemon => 
+      pokemon.name.toLowerCase().includes(name.toLowerCase())
+    );
+    
+    return filteredResults;
+  } catch (error) {
+    console.error(`Error en searchPokemonByName para "${name}":`, error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene Pokémon de un tipo específico.
+ * @param {string} typeName - El nombre del tipo.
+ * @returns {Promise<Array<{pokemon: {name: string, url: string}}>>} Una promesa que resuelve a una lista de Pokémon del tipo especificado.
+ */
+export async function getPokemonByType(typeName) {
+  try {
+    const response = await fetch(`${API_BASE_URL}type/${typeName.toLowerCase()}`);
+    
+    if (!response.ok) {
+      throw new Error(`Error al obtener Pokémon por tipo ${typeName}: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.pokemon; // Devuelve la lista de Pokémon de este tipo
+  } catch (error) {
+    console.error(`Error en getPokemonByType para "${typeName}":`, error);
+    throw error;
+  }
+}
+
+/**
+ * Obtiene Pokémon de una generación específica.
+ * @param {string} generationName - El nombre de la generación.
+ * @returns {Promise<Array<{name: string, url: string}>>} Una promesa que resuelve a una lista de especies de Pokémon de la generación.
+ */
+export async function getPokemonByGeneration(generationName) {
+  try {
+    const response = await fetch(`${API_BASE_URL}generation/${generationName.toLowerCase()}`);
+    
+    if (!response.ok) {
+      throw new Error(`Error al obtener Pokémon por generación ${generationName}: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.pokemon_species; // Devuelve las especies de Pokémon de esta generación
+  } catch (error) {
+    console.error(`Error en getPokemonByGeneration para "${generationName}":`, error);
+    throw error;
+  }
+}

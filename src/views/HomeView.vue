@@ -1,98 +1,93 @@
 // src/views/HomeView.vue
 <template>
-  <div class="container mx-auto p-4">
-    <h1 class="text-3xl font-bold mb-6 text-center text-blue-700">VueDex</h1>
+  <div class="container mx-auto px-4 pb-12">
+    <!-- El título que pusiste en App.vue ya es "VueDex", así que quizás no necesites otro aquí,
+         o puedes hacerlo más específico como "Lista de Pokémon" -->
+    <!-- <h1 class="text-3xl font-bold mb-8 text-center text-gray-800">Explorar Pokémon</h1> -->
 
-    <!-- Componente de Carga -->
-    <div v-if="pokemonStore.isLoadingList" class="text-center">
+    <div v-if="pokemonStore.isLoadingList && pokemonStore.pokemonList.length === 0" class="text-center my-12">
       <LoadingSpinner />
     </div>
-
-    <!-- Componente de Error -->
-    <div v-if="pokemonStore.errorList && !pokemonStore.isLoadingList" class="my-4">
+    <div v-if="pokemonStore.errorList && pokemonStore.pokemonList.length === 0" class="my-8">
       <ErrorMessage :message="pokemonStore.errorList" />
     </div>
 
-    <!-- Lista de Pokémon (componente PokemonList irá aquí) -->
-    <div v-if="!pokemonStore.isLoadingList && !pokemonStore.errorList && pokemonStore.pokemonList.length > 0">
-      <ul class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <li
-          v-for="pokemon in pokemonStore.pokemonList"
-          :key="pokemon.name"
-          class="border p-4 rounded-lg shadow hover:shadow-md transition-shadow cursor-pointer bg-white"
-          @click="goToPokemonDetail(pokemon.name)"
-        >
-          <span class="capitalize font-semibold text-lg">{{ pokemon.name }}</span>
-          <!-- Aquí podríamos poner una imagen placeholder o el componente PokemonCard más adelante -->
-        </li>
-      </ul>
-      <!-- Botón para cargar más (Paginación simple) -->
-      <div class="text-center mt-6" v-if="pokemonStore.pokemonList.length > 0">
-         <button
-            @click="loadMorePokemon"
-            :disabled="pokemonStore.isLoadingList"
-            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded disabled:bg-gray-400"
-          >
-            {{ pokemonStore.isLoadingList ? 'Cargando...' : 'Cargar más Pokémon' }}
-          </button>
+    <div v-if="pokemonStore.pokemonList.length > 0">
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5 md:gap-6">
+        <PokemonCard
+          v-for="pokemonItem in pokemonStore.pokemonList" 
+          :key="pokemonItem.name" 
+          :pokemon="pokemonItem" 
+        /> <!-- Aquí se pasa { name, url } -->
       </div>
     </div>
 
-    <p v-if="!pokemonStore.isLoadingList && !pokemonStore.errorList && pokemonStore.pokemonList.length === 0" class="text-center text-gray-500 mt-4">
-      No se encontraron Pokémon.
+    <p v-if="!pokemonStore.isLoadingList && !pokemonStore.errorList && pokemonStore.pokemonList.length === 0" class="text-center text-gray-500 mt-8 py-10">
+      No se encontraron Pokémon. ¡Intenta recargar o verifica tu conexión!
     </p>
+
+    <!-- Botón de Cargar Más -->
+    <div 
+      class="text-center mt-12 mb-8" 
+      v-if="!pokemonStore.errorList && pokemonStore.pokemonList.length > 0" 
+      role="navigation" 
+      aria-label="Paginación de Pokémon"
+    >
+       <button
+          @click="loadMorePokemon"
+          :disabled="pokemonStore.isLoadingList"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 active:scale-95"
+        >
+          <span v-if="pokemonStore.isLoadingList && pokemonStore.pokemonList.length > 0">
+            <LoadingSpinner class="inline-block w-5 h-5 mr-2 border-2 border-white border-t-transparent" />
+            Cargando...
+          </span>
+          <span v-else>Cargar más Pokémon</span>
+        </button>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { usePokemonStore } from '@/stores/pokemon'; // Importa nuestro store
-import LoadingSpinner from '@/components/common/LoadingSpinner.vue'; // Importa el componente
-import ErrorMessage from '@/components/common/ErrorMessage.vue';   // Importa el componente
+import { onMounted, ref } from 'vue'; // ref no se usa aquí, se podría quitar
+import { usePokemonStore } from '@/stores/pokemon.js';
+import LoadingSpinner from '@/components/common/LoadingSpinner.vue';
+import ErrorMessage from '@/components/common/ErrorMessage.vue';
+import PokemonCard from '@/components/pokemon/PokemonCard.vue';
 
 const pokemonStore = usePokemonStore();
-const router = useRouter();
-
-// Variables para paginación simple
 const itemsPerPage = 20;
-let currentPage = 0; // Comenzamos en la página 0 (offset 0)
+// currentPage ahora se basa en la longitud de la lista para continuar correctamente
+let currentPage = Math.floor(pokemonStore.pokemonList.length / itemsPerPage);
 
-const loadPokemon = async (isLoadMore = false) => {
-  const offset = isLoadMore ? currentPage * itemsPerPage : 0;
-  if (isLoadMore) {
-    // Si es cargar más y ya no hay más que cargar (ej. API devuelve menos de limit)
-    // Podríamos tener una lógica más avanzada si la API nos dijera `count`
-  }
+const loadPokemon = async () => {
+  const offset = currentPage * itemsPerPage;
   await pokemonStore.fetchPokemonList(offset, itemsPerPage);
-  if (!pokemonStore.errorList) {
+  // Incrementar currentPage solo si no hubo error y la lista realmente podría haber crecido.
+  // Una lógica más robusta verificaría si se devolvieron menos items que itemsPerPage para detenerse.
+  if (!pokemonStore.errorList) { 
      currentPage++;
   }
 };
 
 onMounted(() => {
-  // Si queremos cargar la lista solo si está vacía
+  // Si la lista está vacía al montar, cargar la primera página.
+  // Si ya hay datos (ej. por navegación atrás/adelante y Pinia persiste), no se recarga.
   if (pokemonStore.pokemonList.length === 0) {
-    currentPage = 0; // Resetear página si la lista está vacía
+    currentPage = 0; // Asegurar que empezamos desde el principio
     loadPokemon();
   }
-  // Si queremos que siempre se recargue al montar HomeView:
-  // currentPage = 0;
-  // loadPokemon();
 });
 
-const goToPokemonDetail = (pokemonName) => {
-  router.push({ name: 'pokemon-detail', params: { name: pokemonName } });
-};
-
 const loadMorePokemon = () => {
-  loadPokemon(true);
+  loadPokemon();
 };
 </script>
 
 <style scoped>
-/* Estilos específicos para HomeView si son necesarios */
-.container {
-  max-width: 1200px;
+.container { 
+  max-width: 1380px; /* Un poco más de espacio para el grid */
 }
+/* Si LoadingSpinner dentro del botón necesita un color específico */
+/* button:disabled .inline-block { ... } */
 </style>

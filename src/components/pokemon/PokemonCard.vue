@@ -108,21 +108,21 @@ const typeColors = {
   normal: 'bg-gray-400',
   fire: 'bg-orange-500',
   water: 'bg-blue-500',
-  electric: 'bg-yellow-500 text-gray-800',
+  electric: 'bg-yellow-500 text-gray-800', // Ya tiene color de texto oscuro
   grass: 'bg-emerald-500',
-  ice: 'bg-cyan-400 text-gray-800',
+  ice: 'bg-cyan-400 text-gray-800', // Ya tiene color de texto oscuro
   fighting: 'bg-red-600',
   poison: 'bg-purple-500',
   ground: 'bg-amber-600',
   flying: 'bg-indigo-400',
   psychic: 'bg-pink-500',
-  bug: 'bg-lime-500',
+  bug: 'bg-lime-500 text-gray-800', // Añadido texto oscuro
   rock: 'bg-stone-500',
   ghost: 'bg-violet-600',
   dragon: 'bg-indigo-600',
   dark: 'bg-gray-700',
-  steel: 'bg-slate-400',
-  fairy: 'bg-rose-400',
+  steel: 'bg-slate-400 text-gray-800', // Añadido texto oscuro
+  fairy: 'bg-rose-400 text-gray-800', // Añadido texto oscuro
 };
 
 const getTypeColor = (typeName) => typeColors[typeName.toLowerCase()] || 'bg-gray-300';

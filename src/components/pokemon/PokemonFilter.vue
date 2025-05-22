@@ -94,10 +94,10 @@
       <div class="flex flex-wrap gap-2">
         <span 
           v-if="pokemonStore.filters.name" 
-          class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center"
+          class="px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center"
         >
           Nombre: {{ pokemonStore.filters.name }}
-          <button @click="clearNameFilter" class="ml-1 text-blue-600 hover:text-blue-800">
+          <button @click="clearNameFilter" class="ml-1 text-green-600 hover:text-green-800">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
@@ -106,10 +106,10 @@
         
         <span 
           v-if="pokemonStore.filters.type" 
-          class="px-2 py-1 bg-green-100 text-green-800 rounded-full flex items-center"
+          class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full flex items-center"
         >
           Tipo: {{ getDisplayName(pokemonStore.filters.type, 'type') }}
-          <button @click="clearTypeFilter" class="ml-1 text-green-600 hover:text-green-800">
+          <button @click="clearTypeFilter" class="ml-1 text-blue-600 hover:text-blue-800">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>

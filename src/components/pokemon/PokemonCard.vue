@@ -20,7 +20,7 @@
     <div v-else-if="errorDetails" class="flex flex-col items-center justify-center h-56 w-full text-center text-red-500">
       <p class="font-semibold">¡Oops!</p>
       <p class="text-xs break-all">{{ errorDetails }}</p>
-      <button @click.stop="fetchDetails" class="mt-3 px-3 py-1 bg-blue-500 text-white rounded-md text-sm hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400">Reintentar</button>
+      <button @click.stop="fetchDetails" class="mt-3 px-3 py-1 bg-green-600 text-white rounded-md text-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">Reintentar</button>
     </div>
 
     <!-- Contenido Principal de la Tarjeta -->

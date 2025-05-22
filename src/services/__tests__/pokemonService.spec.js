@@ -1,6 +1,6 @@
 // src/services/pokemonService.spec.js
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getPokemonList, getPokemonDetails, getFromUrl } from '../../services/pokemonService'; // Ajusta la ruta si es necesario
+import { getPokemonList, getPokemonDetails, getFromUrl } from '../pokemonService'; // Ajusta la ruta si es necesario
 
 // Guardamos la implementación original de fetch
 const originalFetch = global.fetch;

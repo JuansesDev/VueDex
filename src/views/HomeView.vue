@@ -16,7 +16,7 @@
       <div class="text-center mt-4">
         <button 
           @click="reloadPokemon" 
-          class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
         >
           Reintentar
         </button>
@@ -39,7 +39,7 @@
         <p class="text-gray-600">No se encontraron Pokémon que coincidan con los filtros seleccionados.</p>
         <button 
           @click="pokemonStore.clearFilters()" 
-          class="mt-3 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+          class="mt-3 px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700"
         >
           Limpiar filtros
         </button>
@@ -62,7 +62,7 @@
        <button
           @click="loadMorePokemon"
           :disabled="pokemonStore.isLoadingList"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-8 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transform hover:scale-105 active:scale-95"
+          class="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300 ease-in-out shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50 transform hover:scale-105 active:scale-95"
         >
           <span v-if="pokemonStore.isLoadingList">
             <LoadingSpinner class="inline-block w-5 h-5 mr-2 border-2 border-white border-t-transparent" />

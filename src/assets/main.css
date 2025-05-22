@@ -21,22 +21,29 @@
   font-weight: normal;
 }
 
-a,
+/* Separated styles for anchor tags without the green color */
+a {
+  text-decoration: none;
+  transition: 0.4s;
+  padding: 3px;
+}
+
+/* Keep the green color only for the .green class */
 .green {
   text-decoration: none;
-  color: #3b82f6; /* Changed from hsla(160, 100%, 37%, 1) to blue for better visibility */
+  color: #42b883; /* Vue green */
   transition: 0.4s;
   padding: 3px;
 }
 
 .primary-link {
-  color: #3b82f6;
+  color: #42b883; /* Vue green */
 }
 
 @media (hover: hover) {
   a:hover {
-    background-color: rgba(59, 130, 246, 0.1); /* Changed to match new blue color */
-    color: #2563eb;
+    background-color: rgba(66, 184, 131, 0.1); /* Vue green with opacity */
+    color: #369870; /* Darker shade of Vue green for hover */
   }
 }
 
@@ -79,7 +86,7 @@ body {
 
 /* Ensuring text is visible in all button types */
 .btn-primary {
-  background-color: #3b82f6; /* bg-blue-500 */
+  background-color: #2f855a; /* Darker Vue green for better contrast */
   color: #ffffff; /* text-white */
   font-weight: 500; /* font-medium */
   padding-top: 0.5rem; /* py-2 */
@@ -94,12 +101,12 @@ body {
 }
 
 .btn-primary:hover {
-  background-color: #2563eb; /* hover:bg-blue-600 */
+  background-color: #276749; /* Darker shade for hover state */
 }
 
 .btn-secondary {
   background-color: #f3f4f6; /* bg-gray-100 */
-  color: #1f2937; /* text-gray-800 */
+  color: #35495e; /* Vue's complementary dark color */
   font-weight: 500; /* font-medium */
   padding-top: 0.5rem; /* py-2 */
   padding-bottom: 0.5rem; /* py-2 */
@@ -114,4 +121,13 @@ body {
 
 .btn-secondary:hover {
   background-color: #e5e7eb; /* hover:bg-gray-200 */
+}
+
+/* Vue green focus styles for better accessibility */
+button:focus,
+a:focus,
+input:focus,
+select:focus {
+  outline: 2px solid #42b883;
+  outline-offset: 2px;
 }

@@ -138,18 +138,18 @@ npm run format
 
 ```mermaid
 graph TD
-    A[Usuario interactúa con HomeView] -->|Solicita lista| B(Pinia Store: pokemon.js);
-    B -->|Llama a fetchPokemonList| C(Service: pokemonService.js);
-    C -->|GET /pokemon| D[PokéAPI];
-    D -->|Respuesta JSON| C;
-    C -->|Retorna datos procesados| B;
-    B -->|Actualiza estado pokemonList| A;
-    A -->|Renderiza PokemonCard| E[Componente: PokemonCard.vue];
-    E -->|En onMounted, pide detalles| C;
-    C -->|GET /pokemon/{id_o_nombre}| D;
-    D -->|Respuesta JSON con detalles| C;
-    C -->|Retorna detalles| E;
-    E -->|Renderiza UI| E;
+    A[Usuario interactúa con HomeView] -->|Solicita lista| B(Pinia Store: pokemon.js)
+    B -->|Llama a fetchPokemonList| C(Service: pokemonService.js)
+    C -->|GET /pokemon| D[PokéAPI]
+    D -->|Respuesta JSON| C
+    C -->|Retorna datos procesados| B
+    B -->|Actualiza estado pokemonList| A
+    A -->|Renderiza PokemonCard| E[Componente: PokemonCard.vue]
+    E -->|En onMounted, pide detalles| C
+    C -->|GET /pokemon/id| D
+    D -->|Respuesta JSON con detalles| C
+    C -->|Retorna detalles| E
+    E -->|Renderiza UI| E
 ```
 
 ## 🔮 Posibles Mejoras Futuras

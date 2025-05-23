@@ -4,6 +4,8 @@ VueDex es una aplicación web interactiva y moderna diseñada para explorar el f
 
 Este proyecto fue desarrollado como parte de una prueba técnica de frontend, enfocándose en la creación de una interfaz de usuario agradable, funcional y responsiva, consumiendo datos de la API pública [PokéAPI](https://pokeapi.co/).
 
+📲 **[Ver Demo Desplegada](https://juansesdev.github.io/VueDex/)**
+
 ## ✨ Características Principales
 
 *   **Listado de Pokémon:** Navega por una lista paginada de Pokémon.
@@ -87,6 +89,22 @@ Para compilar y minificar la aplicación para producción:
 npm run build
 ```
 Los archivos optimizados se generarán en la carpeta `dist/`.
+
+### Despliegue en GitHub Pages
+
+Para desplegar la aplicación en GitHub Pages automáticamente:
+```sh
+npm run deploy
+```
+
+Este comando ejecuta el script `deploy.js` que:
+- Construye la aplicación para producción (`npm run build`)
+- Despliega el contenido de la carpeta `dist` en la rama `gh-pages`
+- Muestra la URL donde la aplicación estará disponible
+
+El despliegue usa la librería `gh-pages` y configura automáticamente la rama adecuada para GitHub Pages.
+
+📲 **La aplicación está desplegada en: [https://juansesdev.github.io/VueDex/](https://juansesdev.github.io/VueDex/)**
 
 ### Pruebas Unitarias
 

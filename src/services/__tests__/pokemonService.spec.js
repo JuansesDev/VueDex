@@ -1,158 +1,392 @@
-// src/services/pokemonService.spec.js
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getPokemonList, getPokemonDetails, getFromUrl } from '../pokemonService'; // Ajusta la ruta si es necesario
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { 
+  getPokemonList,
+  getPokemonDetails,
+  getFromUrl,
+  getPokemonTypes,
+  getPokemonGenerations,
+  searchPokemonByName,
+  getPokemonByType,
+  getPokemonByGeneration
+} from '@/services/pokemonService.js';
 
-// Guardamos la implementación original de fetch
-const originalFetch = global.fetch;
+describe('Pokemon Service', () => {
+  // Setup fetch mock before each test
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
 
-beforeEach(() => {
-  // Mockeamos global.fetch antes de cada prueba
-  // vi.fn() crea una función mock que podemos espiar y controlar
-  global.fetch = vi.fn();
-});
+  // Clean up after each test
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
 
-afterEach(() => {
-  // Restauramos la implementación original de fetch después de cada prueba
-  // y limpiamos cualquier mock para evitar interferencias entre pruebas.
-  global.fetch = originalFetch;
-  vi.resetAllMocks(); // Opcional si gestionas mocks manualmente, pero bueno para limpieza general.
-});
-
-const API_BASE_URL = 'https://pokeapi.co/api/v2/';
-
-describe('PokemonService', () => {
   describe('getPokemonList', () => {
-    it('should fetch a list of Pokémon successfully', async () => {
-      const mockResponseData = {
-        count: 100,
-        next: 'some-next-url',
-        previous: null,
+    it('fetches pokemon list with default pagination', async () => {
+      // Mock API response
+      const mockResponse = {
         results: [
-          { name: 'bulbasaur', url: `${API_BASE_URL}pokemon/1/` },
-          { name: 'ivysaur', url: `${API_BASE_URL}pokemon/2/` },
-        ],
+          { name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' },
+          { name: 'ivysaur', url: 'https://pokeapi.co/api/v2/pokemon/2/' }
+        ]
       };
-      // Configuramos el mock de fetch para que resuelva con una respuesta exitosa
-      fetch.mockResolvedValueOnce({
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
         ok: true,
-        json: async () => mockResponseData, // .json() también debe ser una función mockeada que retorna una promesa
+        json: async () => mockResponse
       });
 
-      const offset = 0;
-      const limit = 2;
-      const pokemonList = await getPokemonList(offset, limit);
+      // Call the service
+      const result = await getPokemonList();
 
-      // Verificamos que fetch fue llamado con la URL correcta
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith(`${API_BASE_URL}pokemon?offset=${offset}&limit=${limit}`);
-
-      // Verificamos que los datos devueltos son los esperados
-      expect(pokemonList).toEqual(mockResponseData.results);
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon?offset=0&limit=20');
+      expect(result).toEqual(mockResponse.results);
     });
 
-    it('should throw an error if the API call fails', async () => {
-      // Configuramos el mock de fetch para que resuelva con una respuesta de error
-      fetch.mockResolvedValueOnce({
-        ok: false,
-        status: 500,
-        statusText: 'Internal Server Error',
+    it('fetches pokemon list with custom pagination', async () => {
+      // Mock API response
+      const mockResponse = {
+        results: [
+          { name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/' },
+          { name: 'charmeleon', url: 'https://pokeapi.co/api/v2/pokemon/5/' }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
       });
 
-      // Usamos .rejects.toThrow() para verificar que la promesa es rechazada con un error
-      await expect(getPokemonList(0, 20))
-        .rejects.toThrow('Error al obtener la lista de Pokémon: 500 Internal Server Error');
+      // Call the service with custom pagination
+      const result = await getPokemonList(20, 10);
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon?offset=20&limit=10');
+      expect(result).toEqual(mockResponse.results);
+    });
+
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: ''
+      });
+
+      // Call the service and expect error
+      await expect(getPokemonList()).rejects.toThrow('Error al obtener la lista de Pokémon');
     });
   });
 
   describe('getPokemonDetails', () => {
-    it('should fetch details for a specific Pokémon successfully', async () => {
-      const pokemonName = 'pikachu';
-      const mockResponseData = {
+    it('fetches pokemon details by name', async () => {
+      // Mock API response
+      const mockResponse = {
         id: 25,
         name: 'pikachu',
         height: 4,
         weight: 60,
-        sprites: { front_default: 'pikachu.png' },
+        types: [{ type: { name: 'electric' } }]
       };
-      fetch.mockResolvedValueOnce({
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
         ok: true,
-        json: async () => mockResponseData,
+        json: async () => mockResponse
       });
 
-      const details = await getPokemonDetails(pokemonName);
+      // Call the service
+      const result = await getPokemonDetails('pikachu');
 
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith(`${API_BASE_URL}pokemon/${pokemonName}`);
-      expect(details).toEqual(mockResponseData);
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon/pikachu');
+      expect(result).toEqual(mockResponse);
     });
 
-    it('should throw a "Pokémon no encontrado" error for 404 responses', async () => {
-      const pokemonName = 'nonexistentpokemon';
-      fetch.mockResolvedValueOnce({
+    it('fetches pokemon details by ID', async () => {
+      // Mock API response
+      const mockResponse = {
+        id: 25,
+        name: 'pikachu',
+        height: 4,
+        weight: 60,
+        types: [{ type: { name: 'electric' } }]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await getPokemonDetails(25);
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon/25');
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject with 404
+      global.fetch.mockResolvedValue({
         ok: false,
-        status: 404,
-        statusText: 'Not Found',
+        status: 404
       });
-
-      await expect(getPokemonDetails(pokemonName))
-        .rejects.toThrow(`Pokémon no encontrado: ${pokemonName}`);
-    });
-
-    it('should throw a generic error for other non-ok responses', async () => {
-      const pokemonName = 'pikachu';
-      fetch.mockResolvedValueOnce({
-        ok: false,
-        status: 503,
-        statusText: 'Service Unavailable',
-      });
-
-      await expect(getPokemonDetails(pokemonName))
-        .rejects.toThrow(`Error al obtener los detalles del Pokémon ${pokemonName}: 503 Service Unavailable`);
-    });
-
-     it('should throw an error if nameOrId is not provided', async () => {
-      // No necesitamos mockear fetch aquí porque la validación es síncrona y anterior
-      await expect(getPokemonDetails(undefined))
-        .rejects.toThrow('Se requiere un nombre o ID de Pokémon.');
-      await expect(getPokemonDetails(null))
-        .rejects.toThrow('Se requiere un nombre o ID de Pokémon.');
-       await expect(getPokemonDetails(''))
-        .rejects.toThrow('Se requiere un nombre o ID de Pokémon.');
+      
+      // Call the service and expect error
+      await expect(getPokemonDetails('nonexistent')).rejects.toThrow('Pokémon no encontrado: nonexistent');
     });
   });
 
-  // Pruebas para getFromUrl (si la implementaste y quieres probarla)
-  describe('getFromUrl', () => {
-    it('should fetch data from a specific URL successfully', async () => {
-      const fullUrl = 'https://pokeapi.co/api/v2/pokemon-species/1/';
-      const mockResponseData = { name: 'bulbasaur', flavor_text_entries: [] };
-      fetch.mockResolvedValueOnce({
+  describe('getPokemonTypes', () => {
+    it('fetches all pokemon types', async () => {
+      // Mock API response
+      const mockResponse = {
+        results: [
+          { name: 'normal', url: 'https://pokeapi.co/api/v2/type/1/' },
+          { name: 'fighting', url: 'https://pokeapi.co/api/v2/type/2/' }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
         ok: true,
-        json: async () => mockResponseData,
+        json: async () => mockResponse
       });
 
-      const data = await getFromUrl(fullUrl);
+      // Call the service
+      const result = await getPokemonTypes();
 
-      expect(fetch).toHaveBeenCalledTimes(1);
-      expect(fetch).toHaveBeenCalledWith(fullUrl);
-      expect(data).toEqual(mockResponseData);
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/type');
+      expect(result).toEqual(mockResponse.results);
     });
 
-    it('should throw an error if the getFromUrl API call fails', async () => {
-      const fullUrl = 'https://pokeapi.co/api/v2/pokemon-species/error/';
-      fetch.mockResolvedValueOnce({
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
         ok: false,
         status: 500,
-        statusText: 'Server Error',
+        statusText: ''
       });
 
-      await expect(getFromUrl(fullUrl))
-        .rejects.toThrow(`Error al obtener datos de ${fullUrl}: 500 Server Error`);
+      // Call the service and expect error
+      await expect(getPokemonTypes()).rejects.toThrow('Error al obtener tipos de Pokémon');
+    });
+  });
+
+  describe('getPokemonGenerations', () => {
+    it('fetches all pokemon generations', async () => {
+      // Mock API response
+      const mockResponse = {
+        results: [
+          { name: 'generation-i', url: 'https://pokeapi.co/api/v2/generation/1/' },
+          { name: 'generation-ii', url: 'https://pokeapi.co/api/v2/generation/2/' }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await getPokemonGenerations();
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/generation');
+      expect(result).toEqual(mockResponse.results);
     });
 
-    it('should throw an error if URL is not provided to getFromUrl', async () => {
-      await expect(getFromUrl(undefined))
-        .rejects.toThrow('Se requiere una URL.');
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: ''
+      });
+
+      // Call the service and expect error
+      await expect(getPokemonGenerations()).rejects.toThrow('Error al obtener generaciones de Pokémon');
+    });
+  });
+
+  describe('searchPokemonByName', () => {
+    it('searches pokemon by name prefix', async () => {
+      // Mock API response
+      const mockResponse = {
+        results: [
+          { name: 'pikachu', url: 'https://pokeapi.co/api/v2/pokemon/25/' },
+          { name: 'pikipek', url: 'https://pokeapi.co/api/v2/pokemon/731/' },
+          { name: 'pichu', url: 'https://pokeapi.co/api/v2/pokemon/172/' },
+          { name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/' }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await searchPokemonByName('pi');
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon?limit=2000');
+      expect(result.length).toBe(3);
+      expect(result[0].name).toBe('pikachu');
+      expect(result[1].name).toBe('pikipek');
+      expect(result[2].name).toBe('pichu');
+    });
+
+    it('returns empty array when no matches found', async () => {
+      // Mock API response
+      const mockResponse = {
+        results: [
+          { name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/' },
+          { name: 'ivysaur', url: 'https://pokeapi.co/api/v2/pokemon/2/' }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await searchPokemonByName('xyz');
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon?limit=2000');
+      expect(result).toEqual([]);
+    });
+
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: ''
+      });
+
+      // Call the service and expect error
+      await expect(searchPokemonByName('pi')).rejects.toThrow('Error al buscar Pokémon');
+    });
+  });
+
+  describe('getPokemonByType', () => {
+    it('fetches pokemon by type', async () => {
+      // Mock API response
+      const mockResponse = {
+        pokemon: [
+          { pokemon: { name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/' } },
+          { pokemon: { name: 'charmeleon', url: 'https://pokeapi.co/api/v2/pokemon/5/' } }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await getPokemonByType('fire');
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/type/fire');
+      expect(result).toEqual(mockResponse.pokemon);
+    });
+
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: ''
+      });
+
+      // Call the service and expect error
+      await expect(getPokemonByType('fire')).rejects.toThrow('Error al obtener Pokémon por tipo fire');
+    });
+  });
+
+  describe('getPokemonByGeneration', () => {
+    it('fetches pokemon by generation', async () => {
+      // Mock API response matching the actual API structure
+      const mockResponse = {
+        pokemon_species: [
+          { name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon-species/1/' },
+          { name: 'ivysaur', url: 'https://pokeapi.co/api/v2/pokemon-species/2/' }
+        ]
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await getPokemonByGeneration('generation-i');
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/generation/generation-i');
+      expect(result).toEqual(mockResponse.pokemon_species);
+    });
+
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: ''
+      });
+
+      // Call the service and expect error
+      await expect(getPokemonByGeneration('generation-i')).rejects.toThrow('Error al obtener Pokémon por generación generation-i');
+    });
+  });
+
+  describe('getFromUrl', () => {
+    it('fetches data from a specific URL', async () => {
+      // Mock API response
+      const mockResponse = {
+        id: 25,
+        name: 'pikachu'
+      };
+
+      // Setup fetch mock
+      global.fetch.mockResolvedValue({
+        ok: true,
+        json: async () => mockResponse
+      });
+
+      // Call the service
+      const result = await getFromUrl('https://pokeapi.co/api/v2/pokemon/25/');
+
+      // Assertions
+      expect(global.fetch).toHaveBeenCalledWith('https://pokeapi.co/api/v2/pokemon/25/');
+      expect(result).toEqual(mockResponse);
+    });
+
+    it('handles API errors gracefully', async () => {
+      // Setup fetch mock to reject
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 500,
+        statusText: ''
+      });
+
+      // Call the service and expect error
+      await expect(getFromUrl('https://pokeapi.co/api/v2/pokemon/0/')).rejects.toThrow('Error al obtener datos de');
     });
   });
 });

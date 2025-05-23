@@ -125,9 +125,14 @@ body {
 
 /* Vue green focus styles for better accessibility */
 button:focus,
-a:focus,
 input:focus,
 select:focus {
   outline: 2px solid #42b883;
   outline-offset: 2px;
+}
+
+/* Specific style for anchor tags without outline */
+a:focus {
+  outline: none;
+  outline-offset: 0;
 }

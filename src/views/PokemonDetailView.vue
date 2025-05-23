@@ -281,6 +281,9 @@ const loadDetails = async () => {
   }
 };
 
+// Export loadDetails for testing
+defineExpose({ loadDetails });
+
 // Cargar detalles cuando el componente se monta
 onMounted(() => {
   loadDetails();
